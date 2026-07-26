@@ -1,0 +1,49 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# env
+.env
+contract/.env
+
+# Foundry
+contract/out/
+contract/cache/
+contract/broadcast/*/31337/
+contract/lib/*
+!contract/lib/.gitkeep
+
+# zk — the ceremony's intermediate ptau files are large and reproducible;
+# keep the final zkey, wasm, and verification key since those ARE the
+# artifacts everything else depends on.
+zk/build/pot14_0000.ptau
+zk/build/pot14_0001.ptau
+zk/build/*.wtns
+zk/node_modules
+
+# zk/data/codes.json and tree.json are shipped intentionally in this repo
+# for demo convenience — in a real deployment these are sensitive (they
+# contain every one-time code) and must NOT be committed or served to the
+# frontend. Uncomment before using this as a real project:
+# zk/data/

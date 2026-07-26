@@ -1,4 +1,4 @@
-# zk-nft-marketplace
+# Cipher Mint
 
 An NFT marketplace where minting is gated by a zero-knowledge proof of
 holding a **one-time purchase code**, instead of an on-chain payment. Payment

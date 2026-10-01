@@ -76,7 +76,11 @@ zk-nft-marketplace/       React app (Vite) — root is the node-initialized proj
 ```bash
 npm install                 # root (React app)
 cd zk && npm install && cd ..
-cd contract && forge install && cd ..
+
+# Foundry project is nested under this Git repo, so use an absolute project root.
+CONTRACT_ROOT="$PWD/contract"
+forge install --root "$CONTRACT_ROOT" --no-git --shallow OpenZeppelin/openzeppelin-contracts@v5.3.0
+forge install --root "$CONTRACT_ROOT" --no-git --shallow foundry-rs/forge-std@v1.9.7
 ```
 
 ### 2. Circuit + trusted setup
@@ -151,11 +155,18 @@ cd zk
 node scripts/distribute-code.js
 ```
 
-Picks the next unused code, marks it used in `data/codes.json`, and prints
-a bundle `{ code, pathElements, pathIndices }` — hand this to the buyer
-(e.g. on a post-payment receipt page). **Never distribute the same code
-twice**, and never ship `data/codes.json` / `data/tree.json` to the
-frontend — that would leak every code and defeat the whole point.
+For the demo, this picks the next unused code, marks it used in
+`data/codes.json`, and prints a bundle `{ code, pathElements, pathIndices }`.
+It is a local allocator, **not** a payment integration or production fulfilment
+service. It does not verify a payment-provider webhook, persist an idempotency
+key, lock the inventory, or reserve/deliver a code transactionally. Concurrent
+or repeated executions can therefore allocate incorrectly.
+
+A real integration must keep the inventory server-side, verify the provider's
+signed success event, record a durable paid order, and atomically reserve
+exactly one code for that order before returning the bundle. **Never distribute
+the same code twice**, and never ship `data/codes.json` / `data/tree.json`
+to the frontend — that would leak every code and defeat the whole point.
 
 ### 6. Configure and run the frontend
 
@@ -189,17 +200,24 @@ It also includes `test_RevertsIfAttackerSwapsBuyerSignal`, which directly
 proves the buyer-binding fix works: relabeling a valid proof's `buyer`
 signal to a different address causes proof verification itself to fail.
 
-This has also been validated with a live end-to-end run on a local Anvil
-chain: real deploy, real proof, real `purchase()` transaction, confirmed
-NFT ownership and nullifier consumption on-chain.
+A local Anvil end-to-end run was reported during the original development
+work. The current portfolio-readiness pass freshly re-ran the six Foundry tests
+above against the real proof fixture; it does not present the historical Anvil
+run as fresh release evidence.
+
+For the exact reproducible evidence, safe claims, and parked production work,
+see `docs/portfolio-checklist.md`.
 
 ## Notes / things to change before this is a real product
 
 - The dummy payment step (`dummyPay` in `src/App.jsx`) just hands out a
-  hardcoded code client-side. Replace with a real payment provider whose
-  success webhook calls the equivalent of `distribute-code.js` server-side
-  and returns the bundle to the buyer — never bake real inventory into the
-  frontend bundle.
+  hardcoded code client-side. **Payment integration is PARKED.** A real server
+  must verify signed provider events, use provider-event/order idempotency,
+  store sale and allocation state durably, and reserve/deliver codes under a
+  database transaction or equivalent lock. The current `distribute-code.js`
+  JSON read-modify-write flow provides none of those guarantees.
+- The repository does not currently track a CI workflow for the Foundry suite;
+  the fresh local `forge test -vv` result is the current verification evidence.
 - The trusted setup shipped here is a toy, single-contributor ceremony —
   replace before any real deployment.
 - `price` on the contract is informational only; it isn't enforced, since

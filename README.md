@@ -136,7 +136,7 @@ anvil
 
 # terminal 2
 cd contract
-cp .env.example .env   # fill in MERKLE_ROOT from step 3
+cp .env.example .env   # fill PRIVATE_KEY from local Anvil output + MERKLE_ROOT from step 3
 forge script script/Deploy.s.sol:Deploy --rpc-url http://127.0.0.1:8545 --broadcast
 ```
 
